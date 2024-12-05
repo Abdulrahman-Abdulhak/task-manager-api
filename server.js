@@ -9,10 +9,6 @@ app.use(express.json());
 
 //* routes
 
-app.get("/hello", (req, res) => {
-  res.send("Task Manager App");
-});
-
 app.use("/api/v1/tasks", tasksRouter);
 
 app.listen(port, () => {
