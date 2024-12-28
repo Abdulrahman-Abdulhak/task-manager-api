@@ -1,0 +1,9 @@
+CREATE DATABASE IF NOT EXISTS task_manager;
+USE task_manager;
+-- 
+CREATE TABLE IF NOT EXISTS tasks(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(255) NOT NULL,
+    details TEXT(65535),
+    completed BOOLEAN NOT NULL DEFAULT FALSE
+);
