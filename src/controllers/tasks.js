@@ -1,8 +1,10 @@
 import { Task } from "../db/index.js";
 
-export const getAllTasks = (req, res) => {
+export const getAllTasks = async (req, res) => {
   console.log("getting all tasks");
-  res.send("All tasks sent");
+
+  const [tasks] = await Task.getAll();
+  res.json(tasks);
 };
 
 export const createTask = async (req, res) => {
@@ -10,35 +12,81 @@ export const createTask = async (req, res) => {
 
   let { title, details, completed } = req.body;
 
-  if (title === null || title === undefined) {
-    res.status(400).json({ message: "Missing task title" });
+  const trimmedTitle = `${title}`.trim();
+
+  if (title === null || title === undefined || !trimmedTitle.length) {
+    res.status(400).json({ message: "must provide the title" });
     return;
   }
 
-  const [metaData] = await Task.create({ title, details, completed });
+  if (trimmedTitle.length >= 20) {
+    res.status(400).json({ message: "title can't be more than 20 characters" });
+    return;
+  }
+
+  try {
+    var [metaData] = await Task.create({
+      title,
+      details: `${details}`?.trim(),
+      completed,
+    });
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+
   const [[task]] = await Task.get({ id: metaData.insertId });
   res.json(task);
 };
 
 export const getTask = async (req, res) => {
   console.log("getting a task");
-  const id = req.params.id;
+  const { id: taskId } = req.params;
 
-  if (req.params.id === null || req.params.id === undefined) {
-    res.status(400).json({ message: "Missing task id" });
+  if (taskId === null || taskId === undefined) {
+    res.status(400).json({ message: "missing task id" });
     return;
   }
 
-  const [[task]] = await Task.get({ id });
-  res.json(task);
+  try {
+    const [[task]] = await Task.get({ taskId });
+
+    if (!task) {
+      return res
+        .status(404)
+        .json({ message: `No task with id: ${taskId} was found` });
+    }
+
+    res.json(task);
+  } catch (error) {
+    res.status(500).json({ error });
+  }
 };
 
 export const updateTask = (req, res) => {
   console.log("updating a task");
-  res.json({ id: req.params.id, ...req.body });
+
+  try {
+    res.json({ id: req.params.id, ...req.body });
+  } catch (error) {
+    res.status(500).json({ error });
+  }
 };
 
-export const deleteTask = (req, res) => {
+export const deleteTask = async (req, res) => {
   console.log("deleting a task");
-  res.json({ id: req.params.id });
+
+  const { id: taskId } = req.params;
+
+  try {
+    const [deletion, taskQuery] = await Task.del({ taskId });
+
+    const [[deletedTask]] = taskQuery;
+    if (!deletedTask) {
+      return res.status(404).json({ message: "Task is not found to delete" });
+    }
+
+    res.json({ deletedTask, status: "success" });
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
 };

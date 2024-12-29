@@ -13,15 +13,38 @@ export const create = async ({ title, details = null, completed = null }) => {
   );
 };
 
-export const get = async ({ id }) => {
+export const get = async ({ taskId }) => {
   const pool = await poolDB();
   const query = pool.query(
     `
       SELECT * FROM tasks
       WHERE id = ?
       `,
-    [id]
+    [taskId]
   );
 
   return query;
+};
+
+export const getAll = async () => {
+  const pool = await poolDB();
+  const query = pool.query(`SELECT * FROM tasks`);
+
+  return query;
+};
+
+export const del = async ({ taskId }) => {
+  const pool = await poolDB();
+
+  const task = await get({ taskId });
+  const deletion = task
+    ? pool.query(
+        `
+        DELETE FROM tasks WHERE id = ?
+    `,
+        [taskId]
+      )
+    : null;
+
+  return [deletion, task];
 };
