@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 
 import { poolDB } from "./db/index.js";
 import { tasksRouter } from "./routes/index.js";
+import { errorHandler, notFound } from "./middleware/index.js";
 
 dotenv.config();
 const app = express();
@@ -14,8 +15,9 @@ const dbHost = process.env.DB_HOST;
 app.use(express.json());
 
 //* routes
-
 app.use("/api/v1/tasks", tasksRouter);
+app.use(notFound);
+app.use(errorHandler);
 
 try {
   const pool = await poolDB(dbHost);
