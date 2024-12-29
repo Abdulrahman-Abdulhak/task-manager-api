@@ -62,11 +62,51 @@ export const getTask = async (req, res) => {
   }
 };
 
-export const updateTask = (req, res) => {
+export const updateTask = async (req, res) => {
   console.log("updating a task");
 
+  const { id: taskId } = req.params;
+  const { body: newTask } = req;
+
+  if (!newTask || !Object.keys(newTask).filter((key) => key !== "id").length) {
+    return res.status(400).json({ message: "Must specify fields to update" });
+  }
+
+  let { title } = newTask;
+
+  if (Object.hasOwn(newTask, "title")) {
+    const trimmedTitle = title?.trim();
+
+    if (
+      trimmedTitle === null ||
+      trimmedTitle === undefined ||
+      !trimmedTitle.length
+    ) {
+      res.status(400).json({ message: "must provide the title" });
+      return;
+    }
+
+    if (trimmedTitle.length >= 20) {
+      res
+        .status(400)
+        .json({ message: "title can't be more than 20 characters" });
+      return;
+    }
+
+    newTask.title = trimmedTitle;
+  }
+
   try {
-    res.json({ id: req.params.id, ...req.body });
+    const [[oldTask]] = await Task.get({ taskId });
+
+    if (!oldTask) {
+      return res
+        .status(404)
+        .json({ message: `No task with id: ${taskId} was found` });
+    }
+
+    const [[task]] = await Task.update({ taskId, newTask });
+    res.json(task);
   } catch (error) {
     res.status(500).json({ error });
   }

@@ -48,3 +48,37 @@ export const del = async ({ taskId }) => {
 
   return [deletion, task];
 };
+
+export const update = async ({ taskId, newTask }) => {
+  const pool = await poolDB();
+
+  const allowedFieldsUpdate = ["title", "details", "completed"];
+
+  let updateString = "";
+  let updateValues = [];
+
+  for (const key in newTask) {
+    if (!Object.prototype.hasOwnProperty.call(newTask, key)) continue;
+    if (allowedFieldsUpdate.every((field) => field !== key)) continue;
+
+    if (updateString.length) {
+      updateString += ",";
+    }
+
+    updateString += `${key} = ?`;
+    updateValues.push(newTask[key]);
+  }
+
+  if (!updateString.length) return null;
+
+  const query = await pool.query(
+    `
+        UPDATE tasks
+        SET ${updateString}
+        WHERE id = ?
+    `,
+    [...updateValues, taskId]
+  );
+
+  return await get({ taskId });
+};
