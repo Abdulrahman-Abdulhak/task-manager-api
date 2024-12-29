@@ -8,3 +8,5 @@ export const poolDB = async (url) => {
     password: process.env.DB_PASSWORD,
   });
 };
+
+export const poolHostDB = () => poolDB(process.env.DB_HOST);

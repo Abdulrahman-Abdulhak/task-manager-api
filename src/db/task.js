@@ -1,7 +1,7 @@
-import { poolDB } from "./connect.js";
+import { poolHostDB } from "./connect.js";
 
 export const create = async ({ title, details = null, completed = null }) => {
-  const pool = await poolDB();
+  const pool = await poolHostDB();
   return await pool.query(
     `
     INSERT INTO tasks (title, details ${
@@ -14,7 +14,7 @@ export const create = async ({ title, details = null, completed = null }) => {
 };
 
 export const get = async ({ taskId }) => {
-  const pool = await poolDB();
+  const pool = await poolHostDB();
   const query = pool.query(
     `
       SELECT * FROM tasks
@@ -27,14 +27,14 @@ export const get = async ({ taskId }) => {
 };
 
 export const getAll = async () => {
-  const pool = await poolDB();
+  const pool = await poolHostDB();
   const query = pool.query(`SELECT * FROM tasks`);
 
   return query;
 };
 
 export const del = async ({ taskId }) => {
-  const pool = await poolDB();
+  const pool = await poolHostDB();
 
   const task = await get({ taskId });
   const deletion = task
@@ -50,7 +50,7 @@ export const del = async ({ taskId }) => {
 };
 
 export const update = async ({ taskId, newTask }) => {
-  const pool = await poolDB();
+  const pool = await poolHostDB();
 
   const allowedFieldsUpdate = ["title", "details", "completed"];
 
